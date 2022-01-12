@@ -11,6 +11,11 @@ class NotFoundException(Exception):
 class Credentials:
     aws_access_key_id = os.environ.get('AWS_ACCESS_KEY')
     aws_secret_access_key = os.environ.get('AWS_SECRET_KEY')
+    aws_session_token =  os.environ.get('AWS_SECRET_KEY')
+    hostname = 'http://{hostname}:{port}'.format(hostname = os.environ.get('AWS_HOSTNAME'), port = os.environ.get('AWS_PORT'))
+    host = os.environ.get('AWS_HOSTNAME') 
+    port = os.environ.get('AWS_PORT')
+    region = os.environ.get('AWS_REGION')
 
 class PynamoCrud:
     @classmethod
@@ -38,7 +43,12 @@ class Route(Model, PynamoCrud):
     """
     class Meta(Credentials):
         table_name = 'dynamodb-route'
-        region = 'us-west-1'
+        aws_access_key_id = Credentials.aws_access_key_id
+        aws_secret_access_key = Credentials.aws_secret_access_key
+        aws_session_token = Credentials.aws_session_token
+        region = Credentials.region
+        host = Credentials.host
+        port = Credentials.port
 
     uuid = UnicodeAttribute(range_key=True)
     namespace_uuid = UnicodeAttribute(hash_key=True)
@@ -50,7 +60,7 @@ class Route(Model, PynamoCrud):
 
     @property
     def curl_command(self):
-        url = "https://www.mockachino.com/{}/{}".format(self.namespace_uuid, self.path)
+        url = "http://localhost:8000/{}/{}".format(self.namespace_uuid, self.path)
         return "curl -X {verb} {url}".format(verb = self.verb, url=url)
 
 class Namespace(Model, PynamoCrud):
@@ -59,7 +69,14 @@ class Namespace(Model, PynamoCrud):
     """
     class Meta(Credentials):
         table_name = 'dynamodb-namespace'
-        region = 'us-west-1'
+        aws_access_key_id = Credentials.aws_access_key_id
+        aws_secret_access_key = Credentials.aws_secret_access_key
+        aws_session_token = Credentials.aws_session_token
+        region = Credentials.region
+        host = Credentials.host
+        port = Credentials.port
+
+    print('data_cred_access_key: {cred_access_key}'.format(cred_access_key = Meta.aws_access_key_id))
     uuid = UnicodeAttribute(hash_key=True)
 
     def get_routes(self):
@@ -70,5 +87,8 @@ if __name__ == "__main__":
     load_dotenv()
     Credentials.aws_access_key_id = os.environ.get('AWS_ACCESS_KEY')
     Credentials.aws_secret_access_key = os.environ.get('AWS_SECRET_KEY')
+    Credentials.host = os.environ.get('AWS_HOSTNAME') 
+    Credentials.port = os.environ.get('AWS_PORT')
+    Credentials.region = os.environ.get('AWS_REGION')
     Namespace.create_table(read_capacity_units=1, write_capacity_units=1)
     Route.create_table(read_capacity_units=1, write_capacity_units=1)

@@ -1,0 +1,35 @@
+version: '3.9'
+services:
+  mockachino:
+    image: ${PRIVATE_REGISTRY_PUSH}/mokachino
+    environment:
+      - AWS_SECRET_KEY
+      - AWS_ACCESS_KEY
+    ports:
+      - 8080:8000
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    depends_on:
+      - dynamodb-local
+      
+  dynamodb-local:
+    user: dynamodblocal
+    image: "amazon/dynamodb-local:latest"
+    ports:
+      - 8000:8000
+    volumes:
+      - dynamodb_data:/home/dynamodblocal/data
+    working_dir: /home/dynamodblocal
+
+  dynamodbcli-list:
+    depends_on:
+      - dynamodb-local
+    image: banst/awscli
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_KEY}
+    command:
+      dynamodb list-tables --endpoint-url http://dynamodb-local:8000 --region us-west-2
+volumes:
+  dynamodb_data:

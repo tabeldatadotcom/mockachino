@@ -21,13 +21,15 @@ from dotenv import load_dotenv
 USEFUL_SPACES = [
     #blogs, social network, films, products
 ]
+
+app = FastAPI()
 origins = [ "*" ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"], # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"], # Allows all methods
+    allow_headers=["*"], # Allows all headers
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -141,6 +143,10 @@ if __name__ == "__main__":
     load_dotenv()
     Credentials.aws_access_key_id = os.environ.get('AWS_ACCESS_KEY')
     Credentials.aws_secret_access_key = os.environ.get('AWS_SECRET_KEY')
+    Credentials.host = os.environ.get('AWS_HOSTNAME') 
+    Credentials.port = os.environ.get('AWS_PORT')
+    Credentials.region = os.environ.get('AWS_REGION')
     print(Credentials.aws_secret_access_key)
     print(Credentials.aws_access_key_id)
+    print(Credentials.host)
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv('PORT', "8000")))
